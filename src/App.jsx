@@ -1,32 +1,27 @@
-import InputBox from "./Components/InputBox.jsx";
 import {useState, useEffect} from "react";
 export default function App(){
-  const [apiData, setApiData]=useState({});
   const [isLoading, setIsLoading]=useState(false);
   const [error, setError]=useState();
-  const [amount, setAmount]=useState(1);
-  const [from, setFrom]=useState("USD");
-  const [to, setTo]=useState("INR");
-  const [convertedAmount, setConvertedAmount]=useState();
-
+  const [apiData, setApiData]=useState({});
+  const [amountOne, setAmountOne]=useState("");
+  const [amountTwo, setAmountTwo]=useState("")
+  const [currencyOne, setCurrencyOne]=useState("USD")
+  const [currencyTwo, setCurrencyTwo]=useState("INR")
   useEffect(()=>{
-    async function fetchData(currency){
+    async function apiCall(currencyOne){
       setIsLoading(true);
       try{
-        let response=await fetch(`https://v6.exchangerate-api.com/v6/5bb6f5960cde1502a8cce189/latest/${currency}`);
+        let response=await fetch(`https://v6.exchangerate-api.com/v6/5bb6f5960cde1502a8cce189/latest/${currencyOne}`);
         let data=await response.json();
         setApiData(data.conversion_rates);
-        console.log(apiData.inr);
       }catch(e){
         setError(e);
-      }
-      finally{
+      }finally{
         setIsLoading(false);
       }
-
     }
-    fetchData(from);
-  },[])
+    apiCall(currencyOne);
+  },[currencyOne])
   if (isLoading){
     return (
       <h1>Loading...</h1>
@@ -34,18 +29,55 @@ export default function App(){
   }
   if (error){
     return (
-      <h1>Please try again after some time</h1>
+      <h1>please try again after some time</h1>
     )
   }
-  function change(e){
-    // setAmount(e.target.value)
+  function amountOneChange(e){
+    const amountOneNew=e.target.value
+    setAmountOne(amountOneNew)
+    setAmountTwo(apiData[currencyTwo]*amountOneNew)
+  }
+  function amountTwoChange(e){
+    setAmountTwo(e.target.value)
+  }
+  function changeCurrencyOne(e){
+    setCurrencyOne(e.target.value)
+  }
+  function changeCurrencyTwo(e){
+      setCurrencyTwo(e.target.value)
   }
 
-
   return (
-    <>
-    <InputBox label="From" onAmountChange={change} selectCurrency={from}  currencyOptions={Object.keys(apiData)}/>
-    <InputBox label="To"  selectCurrency={to} currencyOptions={Object.keys(apiData)}/>
-    </>
+    <div className="container">
+      <div className="first-row">
+      <input
+        type="number"
+        placeholder="From"
+        value={amountOne}
+        onChange={amountOneChange}
+        />
+        <select value={currencyOne} onChange={changeCurrencyOne}>
+          {Object.keys(apiData).map(elements=>
+              <option value={elements} key={elements}>{elements}</option>
+            )}
+        </select>
+        </div>
+        <div className="second-row">
+        <input
+          type="number"
+          placeholder="To"
+          value={amountTwo}
+          onChange={amountTwoChange}
+
+        />
+          <select value={currencyTwo} onChange={changeCurrencyTwo}>
+          {Object.keys(apiData).map(elements=>
+              <option value={elements} key={elements}>{elements}</option>
+            )}
+        </select>
+        </div>
+      
+      
+    </div>
   )
 }
